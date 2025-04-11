@@ -1,13 +1,26 @@
 export default {
   async fetch(request) {
-    // Rewrite the request URL to munvote.com
     const url = new URL(request.url);
     url.hostname = "munvote.com";
 
-    // Forward the request to munvote.com
-    const response = await fetch(url.toString(), request);
-    console.log(response);
-    // Return the origin response directly
-    return response;
+    const newRequest = new Request(url.toString(), {
+      method: request.method,
+      headers: request.headers,
+      body: request.body,
+      redirect: "manual",
+      cf: {
+        cacheTtl: 0,
+        cacheEverything: true,
+        cacheKey: undefined,
+      },
+    });
+
+    return fetch(newRequest, {
+      cache: "no-store",
+      cf: {
+        cacheTtl: 0,
+        cacheEverything: true,
+      },
+    });
   },
 };
