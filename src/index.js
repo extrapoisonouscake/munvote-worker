@@ -1,6 +1,6 @@
 addEventListener("fetch", (event) => {
-  if (event.request.headers.get("Upgrade") === "websocket") {
     const url = new URL(event.request.url);
+  if (url.protocol==='wss:'||url.protocol==='ws:') {
 
     // Extract the path and query parameters from the URL
     const path = url.pathname; // e.g., /api/socket.io
