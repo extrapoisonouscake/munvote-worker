@@ -59,42 +59,33 @@ async function handleRequest(request) {
   // Return the modified response to the client
   return modifiedResponse;
 }
+
 async function handleWebSocket(req, webSocketUrl) {
-  const upgradeHeaders = {
-    Upgrade: "websocket",
-    Connection: "Upgrade",
-  };
+  // Create a new WebSocket connection to the target server
+  const webSocket = new WebSocket(webSocketUrl);
 
-  const ws = await WebSocketPair.from(req);
-  const [clientSocket, serverSocket] = ws;
+  // Create a new WebSocket pair for the client
+  const [client, server] = Object.values(new WebSocketPair());
 
-  // Connect the WebSocket client to your WebSocket server
-  const serverWebSocket = new WebSocket(webSocketUrl);
-
-  // Forward messages from the client to the WebSocket server
-  clientSocket.accept();
-  serverWebSocket.on("message", (message) => {
-    clientSocket.send(message);
+  // Handle messages from the client
+  server.accept();
+  server.addEventListener("message", (event) => {
+    webSocket.send(event.data);
   });
 
-  // Forward messages from the WebSocket server to the client
-  clientSocket.onmessage = (event) => {
-    serverWebSocket.send(event.data);
-  };
+  // Handle messages from the target server
+  webSocket.addEventListener("message", (event) => {
+    server.send(event.data);
+  });
 
-  // Close the WebSocket when the client disconnects
-  clientSocket.onclose = () => {
-    serverWebSocket.close();
-  };
+  // Handle connection closure
+  webSocket.addEventListener("close", () => {
+    server.close();
+  });
 
-  // Close the WebSocket when the server disconnects
-  serverWebSocket.onclose = () => {
-    clientSocket.close();
-  };
-
+  // Return the client WebSocket to the browser
   return new Response(null, {
-    status: 101, // HTTP 101 WebSocket Protocol Handshake
-    headers: upgradeHeaders,
-    webSocket: true,
+    status: 101,
+    webSocket: client,
   });
 }
