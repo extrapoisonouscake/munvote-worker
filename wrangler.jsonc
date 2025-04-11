@@ -1,5 +1,0 @@
-{
-  "name": "munvote-worker",
-  "compatibility_date": "2025-04-11",
-  "main": "src/index.js"
-}
