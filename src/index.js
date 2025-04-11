@@ -1,5 +1,20 @@
 addEventListener("fetch", (event) => {
-  event.respondWith(handleRequest(event.request));
+  if (req.headers.get("Upgrade") === "websocket") {
+    const url = new URL(req.url);
+
+    // Extract the path and query parameters from the URL
+    const path = url.pathname; // e.g., /api/socket.io
+    const queryParams = url.search; // e.g., ?EIO=4&transport=websocket&sid=99o4j_ug0xsuD42lAAAD
+
+    // Forward the WebSocket connection to your WebSocket server
+    // Assuming your WebSocket server is running at ws://your-websocket-server.com
+    const webSocketUrl = `wss://munvote.com${path}${queryParams}`;
+    console.log(webSocketUrl);
+    // Create a WebSocket upgrade request
+    event.respondWith(handleWebSocket(req, webSocketUrl));
+  } else {
+    event.respondWith(handleRequest(event.request));
+  }
 });
 
 async function handleRequest(request) {
@@ -43,4 +58,42 @@ async function handleRequest(request) {
 
   // Return the modified response to the client
   return modifiedResponse;
+}
+async function handleWebSocket(req, webSocketUrl) {
+  const upgradeHeaders = {
+    Upgrade: "websocket",
+    Connection: "Upgrade",
+  };
+
+  const ws = await WebSocketPair.from(req);
+  const [clientSocket, serverSocket] = ws;
+
+  // Connect the WebSocket client to your WebSocket server
+  const serverWebSocket = new WebSocket(webSocketUrl);
+
+  // Forward messages from the client to the WebSocket server
+  clientSocket.accept();
+  serverWebSocket.on("message", (message) => {
+    clientSocket.send(message);
+  });
+
+  // Forward messages from the WebSocket server to the client
+  clientSocket.onmessage = (event) => {
+    serverWebSocket.send(event.data);
+  };
+
+  // Close the WebSocket when the client disconnects
+  clientSocket.onclose = () => {
+    serverWebSocket.close();
+  };
+
+  // Close the WebSocket when the server disconnects
+  serverWebSocket.onclose = () => {
+    clientSocket.close();
+  };
+
+  return new Response(null, {
+    status: 101, // HTTP 101 WebSocket Protocol Handshake
+    headers: upgradeHeaders,
+  });
 }
