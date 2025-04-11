@@ -1,6 +1,6 @@
 addEventListener("fetch", (event) => {
-  if (req.headers.get("Upgrade") === "websocket") {
-    const url = new URL(req.url);
+  if (event.request.headers.get("Upgrade") === "websocket") {
+    const url = new URL(event.request.url);
 
     // Extract the path and query parameters from the URL
     const path = url.pathname; // e.g., /api/socket.io
@@ -11,7 +11,7 @@ addEventListener("fetch", (event) => {
     const webSocketUrl = `wss://munvote.com${path}${queryParams}`;
     console.log(webSocketUrl);
     // Create a WebSocket upgrade request
-    event.respondWith(handleWebSocket(req, webSocketUrl));
+    event.respondWith(handleWebSocket(event.request, webSocketUrl));
   } else {
     event.respondWith(handleRequest(event.request));
   }
@@ -95,5 +95,6 @@ async function handleWebSocket(req, webSocketUrl) {
   return new Response(null, {
     status: 101, // HTTP 101 WebSocket Protocol Handshake
     headers: upgradeHeaders,
+    webSocket: true,
   });
 }
