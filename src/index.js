@@ -8,10 +8,10 @@ addEventListener("fetch", (event) => {
 
     // Forward the WebSocket connection to your WebSocket server
     // Assuming your WebSocket server is running at ws://your-websocket-server.com
-    const webSocketUrl = `wss://munvote.com${path}${queryParams}`;
+    const webSocketUrl = `https://munvote.com${path}${queryParams}`;
     console.log(webSocketUrl);
     // Create a WebSocket upgrade request
-    event.respondWith(handleWebSocket(event.request, webSocketUrl));
+    event.respondWith(fetch(webSocketUrl,event.request));
   } else {
     event.respondWith(handleRequest(event.request));
   }
