@@ -6,7 +6,7 @@ export default {
 
     // Forward the request to munvote.com
     const response = await fetch(url.toString(), request);
-
+    console.log(response);
     // Return the origin response directly
     return response;
   },

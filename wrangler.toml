@@ -1,0 +1,7 @@
+# wrangler.toml (wrangler v3.88.0^)
+name = "munvote-worker"
+compatibility_date = "2025-04-11"
+main: "src/index.js"
+
+[observability.logs]
+enabled = true
